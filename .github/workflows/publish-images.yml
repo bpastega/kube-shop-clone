@@ -25,3 +25,13 @@ jobs:
           file: ${{ matrix.dockerfile }}
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/kubeshop-${{ matrix.service }}:${{ github.sha }}
+  trigger-deploy:
+    needs: publish
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar o deploy no repositório de infraestrutura
+        env:
+          GH_TOKEN: ${{ secrets.INFRA_DISPATCH_TOKEN }}
+        run: |
+          gh workflow run deploy.yml -R bpastega/kubeshop-pastega \
+            -f environment=dev -f app_tag="$GITHUB_SHA" -f update_os=false
